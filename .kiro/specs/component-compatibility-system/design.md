@@ -4,207 +4,310 @@
 
 The Component Compatibility System is a web-based application that provides real-time compatibility checking between bicycle components. The system uses a color-coded visual feedback system (green/orange/red) to indicate compatibility status and supports both frame-centric workflows and direct component-to-component comparisons.
 
-The architecture follows a modern web application pattern with a Next.js (React) frontend, Django with Django REST Framework backend, and PostgreSQL database. The system includes Kiro, an AI agent for automated web scraping and data collection, plus an admin interface for manual data management.
+The architecture follows a modern web application pattern with a Next.js (React) frontend, Django with Django REST Framework backend, and PostgreSQL database. The system includes an AI agent for automated web scraping and data collection, plus an admin interface for manual data management.
 
 ## Architecture
 
-### High-Level Architecture
+### System Architecture Diagram
 
 ```mermaid
 graph TB
     subgraph "Frontend Layer"
-        UI[Next.js React Application]
-        Mobile[Responsive Mobile Interface]
+        UI[Next.js React App]
+        BC[Bike Component Diagram]
+        CS[Component Search Interface]
+        CR[Compatibility Results Display]
     end
     
     subgraph "Backend Layer"
         API[Django REST Framework API]
-        Auth[Django Authentication]
-        Compat[Compatibility Engine]
-        Search[Search Service]
+        BL[Business Logic Layer]
+        AS[AI Scraping Service]
+        ADMIN[Django Admin Interface]
     end
     
     subgraph "Data Layer"
         DB[(PostgreSQL Database)]
-        Cache[Redis Cache]
+        CACHE[Redis Cache]
     end
     
     subgraph "External Services"
-        Kiro[Kiro AI Agent]
-        Suppliers[Supplier Websites]
+        SUPPLIERS[Supplier Websites]
     end
     
     UI --> API
-    Mobile --> API
-    API --> Auth
-    API --> Compat
-    API --> Search
-    API --> DB
-    API --> Cache
-    Kiro --> Suppliers
-    Kiro --> API
+    BC --> CS
+    CS --> CR
+    API --> BL
+    BL --> DB
+    API --> CACHE
+    AS --> SUPPLIERS
+    AS --> DB
+    ADMIN --> DB
 ```
 
-### Design Decisions and Rationales
+### Technology Stack
 
-**Frontend Technology Choice**: Next.js with React and TypeScript
-- **Rationale**: Provides excellent component reusability for the color-coded compatibility indicators, server-side rendering for better SEO and performance, strong ecosystem for responsive design, and TypeScript ensures type safety for complex compatibility logic.
-
-**Backend Technology Choice**: Django with Django REST Framework
-- **Rationale**: Robust ORM for complex component relationships, built-in admin interface for data management, excellent authentication and permissions system, and strong ecosystem for web scraping integration with Python libraries.
-
-**Database Choice**: PostgreSQL
-- **Rationale**: Excellent support for complex relationships between components, JSONB fields for flexible component specifications, and strong consistency for compatibility rules.
-
-**Caching Strategy**: Redis for compatibility results
-- **Rationale**: Compatibility calculations can be expensive, and results are frequently accessed. Redis provides sub-second response times for repeated queries.
+- **Frontend**: Next.js 14+ with React 18, TypeScript, Tailwind CSS
+- **Backend**: Django 4.2+ with Django REST Framework
+- **Database**: PostgreSQL 15+
+- **Caching**: Redis for API response caching
+- **AI Scraping**: Python-based web scraping with BeautifulSoup/Scrapy
+- **Deployment**: Docker containers for development and production
 
 ## Components and Interfaces
 
 ### Frontend Components
 
-#### Core UI Components
-- **FrameSelector**: Handles frame selection with search and filtering
-- **ComponentBrowser**: Displays components with color-coded compatibility
-- **CompatibilityIndicator**: Reusable component for green/orange/red status display
-- **SearchBar**: Auto-complete search functionality
-- **ComparisonView**: Direct component-to-component comparison interface
+#### 1. Interactive Bike Diagram Component
+```typescript
+interface BikeComponentArea {
+  id: string;
+  name: string;
+  coordinates: { x: number; y: number; width: number; height: number };
+  category: ComponentCategory;
+  isSelected: boolean;
+  compatibilityStatus?: 'compatible' | 'conditional' | 'incompatible';
+}
 
-#### Layout Components
-- **ResponsiveLayout**: Adapts interface for desktop/tablet/mobile
-- **NavigationBar**: Main application navigation
-- **AdminPanel**: Administrative interface for data management
+interface BikeComponentDiagramProps {
+  selectedComponents: SelectedComponent[];
+  onComponentClick: (area: BikeComponentArea) => void;
+  onComponentHover: (area: BikeComponentArea | null) => void;
+}
+```
 
-### Backend Services
+#### 2. Component Search Interface
+```typescript
+interface ComponentSearchProps {
+  category: ComponentCategory;
+  onComponentSelect: (component: Component) => void;
+  compatibilityFilter?: Component; // For filtering compatible components
+}
+
+interface SearchFilters {
+  brand?: string;
+  priceRange?: [number, number];
+  specifications?: Record<string, string>;
+}
+```
+
+#### 3. Compatibility Display Component
+```typescript
+interface CompatibilityResult {
+  status: 'compatible' | 'conditional' | 'incompatible';
+  confidence: number;
+  explanation: string;
+  requiredAdapters?: Adapter[];
+  alternativeSuggestions?: Component[];
+}
+
+interface CompatibilityDisplayProps {
+  result: CompatibilityResult;
+  components: [Component, Component];
+}
+```
+
+### Backend API Endpoints
+
+#### Core API Structure
+```python
+# Django REST Framework ViewSets
+class ComponentViewSet(viewsets.ModelViewSet):
+    """CRUD operations for components with filtering and search"""
+    
+class FrameViewSet(viewsets.ModelViewSet):
+    """CRUD operations for bike frames"""
+    
+class CompatibilityCheckView(APIView):
+    """POST endpoint for checking compatibility between components"""
+    
+class ComponentSearchView(APIView):
+    """GET endpoint with advanced search and filtering"""
+```
 
 #### API Endpoints
-```
-GET /api/frames - List and search frames
-GET /api/components/:category - List components by category
-POST /api/compatibility/check - Check compatibility between components
-GET /api/compatibility/frame/:frameId - Get all compatibilities for a frame
-POST /api/admin/components - Add/edit components (admin only)
-POST /api/admin/compatibility-rules - Manage compatibility rules
-```
-
-#### Core Services
-- **CompatibilityEngine**: Central service for compatibility calculations
-- **ComponentService**: CRUD operations for components and frames
-- **SearchService**: Handles search and filtering logic
-- **ScrapingService**: Manages AI web scraper integration
-- **ValidationService**: Validates compatibility rules and component data
-
-### Data Models
-
-#### Component Model
-```typescript
-interface Component {
-  id: string;
-  type: ComponentType;
-  brand: string;
-  model: string;
-  specifications: Record<string, any>;
-  compatibilityRules: CompatibilityRule[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
-
-#### Frame Model
-```typescript
-interface Frame extends Component {
-  type: 'frame';
-  frameSize: string;
-  material: string;
-  geometry: FrameGeometry;
-  mountingStandards: MountingStandard[];
-}
-```
-
-#### Compatibility Rule Model
-```typescript
-interface CompatibilityRule {
-  id: string;
-  sourceComponentId: string;
-  targetComponentId: string;
-  status: 'compatible' | 'conditional' | 'incompatible';
-  conditions?: string[];
-  explanation: string;
-  confidence: number;
-}
-```
+- `GET /api/components/` - List components with filtering
+- `GET /api/components/{id}/` - Get specific component details
+- `GET /api/frames/` - List bike frames
+- `POST /api/compatibility/check/` - Check compatibility between components
+- `GET /api/components/search/` - Advanced component search
+- `GET /api/standards/` - List all compatibility standards
 
 ## Data Models
 
-### Database Schema
+### Core Database Schema
 
-#### Components Table
-- Primary storage for all bicycle components including frames
-- JSONB field for flexible specification storage
-- Indexed on brand, model, and component type for fast searching
+```python
+# Django Models
+class Standard(models.Model):
+    """Mechanical standards (BB types, axle standards, etc.)"""
+    name = models.CharField(max_length=100)
+    category = models.CharField(max_length=50)
+    description = models.TextField()
+    specifications = models.JSONField()
 
-#### Compatibility Rules Table
-- Stores relationships between components
-- Supports both specific component pairs and pattern-based rules
-- Includes confidence scoring for AI-generated rules
+class Frame(models.Model):
+    """Bike frame specifications"""
+    brand = models.CharField(max_length=100)
+    model = models.CharField(max_length=100)
+    year = models.IntegerField()
+    bottom_bracket_standard = models.ForeignKey(Standard)
+    rear_axle_standard = models.ForeignKey(Standard)
+    brake_mount_standard = models.ForeignKey(Standard)
+    headtube_standard = models.ForeignKey(Standard)
+    seatpost_diameter = models.DecimalField(max_digits=5, decimal_places=2)
 
-#### Scraping Queue Table
-- Manages automated data collection tasks
-- Tracks scraping status and validation results
-- Stores conflict resolution data
+class Component(models.Model):
+    """Individual bike components"""
+    name = models.CharField(max_length=200)
+    brand = models.CharField(max_length=100)
+    category = models.CharField(max_length=50, choices=COMPONENT_CATEGORIES)
+    specifications = models.JSONField()
+    compatible_standards = models.ManyToManyField(Standard)
+    price_range = models.CharField(max_length=50, null=True)
 
-### Compatibility Logic
+class CompatibilityRule(models.Model):
+    """Explicit compatibility rules between components/standards"""
+    component_a = models.ForeignKey(Component, related_name='compatibility_a')
+    component_b = models.ForeignKey(Component, related_name='compatibility_b')
+    status = models.CharField(max_length=20, choices=COMPATIBILITY_STATUS)
+    confidence = models.DecimalField(max_digits=3, decimal_places=2)
+    explanation = models.TextField()
+    required_adapters = models.ManyToManyField('Adapter', blank=True)
+```
 
-The compatibility engine uses a multi-layered approach:
+### Component Categories and Specifications
 
-1. **Direct Rules**: Explicit compatibility relationships stored in the database
-2. **Pattern Matching**: Rules based on component specifications and standards
-3. **AI Inference**: Machine learning models for uncertain compatibility cases
-4. **Fallback Logic**: Conservative "conditional" status when certainty is low
+```python
+COMPONENT_CATEGORIES = [
+    ('bottom_bracket', 'Bottom Bracket & Crankset'),
+    ('cassette_derailleur', 'Cassette & Derailleur'),
+    ('brake_system', 'Brake System'),
+    ('wheel_frame', 'Wheel & Frame Interface'),
+    ('seatpost', 'Seatpost & Frame'),
+]
+
+# Category-specific specification schemas
+SPECIFICATION_SCHEMAS = {
+    'bottom_bracket': {
+        'spindle_type': str,
+        'shell_width': float,
+        'standard': str,  # BSA, BB30, DUB, etc.
+        'thread_pitch': str,
+    },
+    'cassette_derailleur': {
+        'gear_range': str,
+        'spacing': str,
+        'pull_ratio': str,
+        'speed_count': int,
+        'brand_compatibility': list,
+    },
+    'brake_system': {
+        'type': str,  # mechanical, hydraulic
+        'mounting_standard': str,
+        'rotor_size': list,
+        'brand': str,
+        'actuation_type': str,
+    },
+    'wheel_frame': {
+        'axle_type': str,  # quick_release, thru_axle
+        'spacing': float,  # 135mm, 142mm, etc.
+        'rotor_mounting': str,  # centerlock, 6_bolt
+        'hub_standard': str,
+    },
+    'seatpost': {
+        'diameter': float,
+        'insertion_length': float,
+        'saddle_clamp_type': str,
+        'material': str,
+    }
+}
+```
 
 ## Error Handling
 
 ### Frontend Error Handling
-- **Network Errors**: Graceful degradation with retry mechanisms
-- **Validation Errors**: Real-time form validation with clear error messages
-- **Compatibility Errors**: Fallback to "uncertain" status with explanatory text
+- Network error handling with retry mechanisms
+- User-friendly error messages for compatibility check failures
+- Loading states during API calls
+- Graceful degradation when components fail to load
 
 ### Backend Error Handling
-- **Database Errors**: Connection pooling with automatic retry
-- **Scraping Errors**: Queue-based retry system with exponential backoff
-- **Validation Errors**: Comprehensive input validation with detailed error responses
-- **Rate Limiting**: Prevents abuse while maintaining performance
+```python
+class CompatibilityAPIException(APIException):
+    """Custom exception for compatibility check errors"""
+    status_code = 400
+    default_detail = 'Compatibility check failed'
 
-### Data Integrity
-- **Compatibility Rule Validation**: Prevents circular dependencies and conflicting rules
-- **Component Data Validation**: Ensures required specifications are present
-- **Scraping Data Validation**: AI-scraped data requires admin approval before integration
+class ComponentNotFoundError(APIException):
+    status_code = 404
+    default_detail = 'Component not found'
+
+# Error response format
+{
+    "error": {
+        "code": "COMPATIBILITY_CHECK_FAILED",
+        "message": "Unable to determine compatibility",
+        "details": "Missing specification data for component X"
+    }
+}
+```
 
 ## Testing Strategy
 
-### Unit Testing
-- **Frontend**: Jest and React Testing Library for component testing
-- **Backend**: Jest for service and utility function testing
-- **Database**: Isolated test database with transaction rollback
+### Frontend Testing
+- **Unit Tests**: Jest + React Testing Library for component logic
+- **Integration Tests**: Testing component interactions and API calls
+- **E2E Tests**: Cypress for full user workflow testing
+- **Visual Regression Tests**: Chromatic for UI consistency
 
-### Integration Testing
-- **API Testing**: Supertest for endpoint testing with real database
-- **Compatibility Engine**: Comprehensive test cases for all compatibility scenarios
-- **Scraping Integration**: Mock external services for reliable testing
+### Backend Testing
+- **Unit Tests**: Django TestCase for model and business logic
+- **API Tests**: Django REST Framework APITestCase for endpoint testing
+- **Integration Tests**: Database integration and external service mocking
+- **Performance Tests**: Load testing for compatibility check endpoints
 
-### End-to-End Testing
-- **User Workflows**: Cypress tests for complete user journeys
-- **Responsive Design**: Cross-device testing for mobile compatibility
-- **Performance Testing**: Load testing for compatibility calculation performance
+### Test Coverage Requirements
+- Minimum 80% code coverage for backend
+- Minimum 70% code coverage for frontend
+- 100% coverage for critical compatibility logic
 
-### Performance Requirements
-- **Compatibility Checks**: Sub-1-second response time for individual checks
-- **Component Loading**: Progressive loading for large component lists
-- **Search Performance**: Real-time search results with debounced queries
-- **Mobile Performance**: Optimized bundle size and lazy loading
+### Key Test Scenarios
+1. **Compatibility Logic Tests**
+   - Compatible component combinations
+   - Incompatible component combinations
+   - Conditional compatibility with adapters
+   - Edge cases and error conditions
 
-### Monitoring and Analytics
-- **Performance Monitoring**: Track compatibility check response times
-- **Error Tracking**: Comprehensive error logging and alerting
-- **Usage Analytics**: Track popular components and compatibility patterns
-- **Scraping Monitoring**: Monitor data collection success rates and quality
+2. **User Interface Tests**
+   - Bike diagram interaction
+   - Component search and selection
+   - Color-coded compatibility display
+   - Responsive design across devices
+
+3. **Data Integrity Tests**
+   - Component specification validation
+   - Compatibility rule consistency
+   - AI scraping data validation
+   - Admin interface data management
+
+## Performance Considerations
+
+### Frontend Optimization
+- Component lazy loading for large component lists
+- Image optimization for bike diagrams
+- Debounced search input to reduce API calls
+- Client-side caching of frequently accessed data
+
+### Backend Optimization
+- Database indexing on frequently queried fields
+- Redis caching for compatibility check results
+- Pagination for large component lists
+- Optimized database queries with select_related/prefetch_related
+
+### Scalability Planning
+- Horizontal scaling capability for API servers
+- Database read replicas for improved read performance
+- CDN integration for static assets
+- Monitoring and alerting for performance metrics

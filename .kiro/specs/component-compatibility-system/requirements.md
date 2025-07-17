@@ -8,15 +8,27 @@ The Component Compatibility System is a web application that provides intuitive 
 
 ### Requirement 1
 
-**User Story:** As a user, I want to select my bike frame first and then see color-coded compatibility when choosing components, so that I can immediately understand what will work with my frame.
+**User Story:** As a user, I want to interact with a visual bike diagram where I can hover over and click on specific components, so that I can intuitively select the parts I want to check compatibility for.
 
 #### Acceptance Criteria
 
-1. WHEN a user selects a frame THEN the system SHALL store this as the base reference for all subsequent compatibility checks
-2. WHEN a user browses components after selecting a frame THEN the system SHALL display each component with color-coded compatibility indicators
-3. WHEN a component is compatible with the selected frame THEN the system SHALL highlight it in green
-4. WHEN a component compatibility is uncertain or conditional THEN the system SHALL highlight it in orange
-5. WHEN a component is incompatible with the selected frame THEN the system SHALL highlight it in red
+1. WHEN a user loads the application THEN the system SHALL display a visual bike diagram with clickable component areas
+2. WHEN a user hovers over a bike component THEN the system SHALL highlight that component area on the bike diagram
+3. WHEN a user clicks on a highlighted component THEN the system SHALL open a search interface for that specific component category
+4. WHEN the search interface opens THEN the system SHALL display a search bar with component-specific filters
+5. WHEN a user selects a component from search results THEN the system SHALL store this selection and update the bike diagram to show the selected component
+
+### Requirement 1.1
+
+**User Story:** As a user, I want the system to support the five main component categories with their specific compatibility factors, so that I can check all critical bike compatibility aspects.
+
+#### Acceptance Criteria
+
+1. WHEN a user clicks on the bottom bracket area THEN the system SHALL provide search for Bottom Bracket & Crankset components with spindle type, shell width, and standard filters (BSA, BB30, DUB)
+2. WHEN a user clicks on the rear derailleur/cassette area THEN the system SHALL provide search for Cassette & Derailleur components with gear range, spacing, and pull ratio specifications
+3. WHEN a user clicks on the brake areas THEN the system SHALL provide search for Brake System components with type (mechanical/hydraulic), mounting standard, rotor size, and brand filters
+4. WHEN a user clicks on the wheel areas THEN the system SHALL provide search for Wheel components with axle type (quick release/thru-axle), spacing, and rotor mounting options
+5. WHEN a user clicks on the seatpost area THEN the system SHALL provide search for Seatpost components with diameter, insertion length, and saddle clamp compatibility
 
 ### Requirement 2
 
