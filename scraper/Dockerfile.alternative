@@ -18,11 +18,14 @@ RUN mkdir -p logs
 # Copy project
 COPY . .
 
-# Setup cron job - alternative approach to avoid crontab errors
+# Make entrypoint script executable
+RUN chmod +x /app/entrypoint.sh
+
+# Setup cron job
 RUN echo "0 2 * * * cd /app && python /app/main.py >> /app/logs/cron.log 2>&1" > /etc/cron.d/scraper-cron \
     && echo "" >> /etc/cron.d/scraper-cron \
     && chmod 0644 /etc/cron.d/scraper-cron \
     && crontab /etc/cron.d/scraper-cron
 
-# Start cron and keep container running
-CMD ["cron", "-f"]
+# Use entrypoint script
+ENTRYPOINT ["/app/entrypoint.sh"]
