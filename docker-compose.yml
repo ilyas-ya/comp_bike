@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # PostgreSQL Database
@@ -83,7 +83,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/compatibility_system
       - REDIS_URL=redis://redis:6379/1
-      - SCRAPER_SCHEDULE=0 2 * * *  # Daily at 2 AM
+      - SCRAPER_SCHEDULE=0 2 * * * # Daily at 2 AM
     volumes:
       - ./scraper:/app
       - scraper_logs:/app/logs

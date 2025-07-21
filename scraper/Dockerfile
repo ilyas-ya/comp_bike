@@ -21,7 +21,6 @@ RUN mkdir -p logs
 # Setup cron job
 COPY crontab /etc/cron.d/scraper-cron
 RUN chmod 0644 /etc/cron.d/scraper-cron
-RUN crontab /etc/cron.d/scraper-cron
 
 # Start cron and keep container running
 CMD ["cron", "-f"]
