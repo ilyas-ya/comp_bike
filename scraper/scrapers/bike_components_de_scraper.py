@@ -48,31 +48,31 @@ class BikeComponentsDEScraper(BaseScraper):
         return [
             {
                 'name': 'Cranksets',
-                'url': f"{self.base_url}/en/cranksets/",
+                'url': f"{self.base_url}en/components/drivetrain/cranks/",
                 'category': 'crankset',
                 'max_pages': 5  # Limit pages for testing
             },
             {
                 'name': 'Cassettes',
-                'url': f"{self.base_url}/en/cassettes/",
+                'url': f"{self.base_url}/en/components/drivetrain/cassettes/",
                 'category': 'cassette',
                 'max_pages': 5
             },
             {
                 'name': 'Derailleurs',
-                'url': f"{self.base_url}/en/derailleurs/",
+                'url': f"{self.base_url}/en/components/shifters-derailleurs/",
                 'category': 'derailleur',
                 'max_pages': 5
             },
             {
                 'name': 'Brakes',
-                'url': f"{self.base_url}/en/brakes/",
+                'url': f"{self.base_url}/en/components/brakes/",
                 'category': 'brakes',
                 'max_pages': 5
             },
             {
                 'name': 'Frames',
-                'url': f"{self.base_url}/en/frames/",
+                'url': f"{self.base_url}/en/components/frames/",
                 'category': 'frame',
                 'max_pages': 3
             }

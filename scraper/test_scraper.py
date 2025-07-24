@@ -42,7 +42,7 @@ def test_page_fetch():
         scraper = BikeComponentsDEScraper(MockDB())
         
         # Test fetching the main cranksets page
-        test_url = "https://www.bike-components.de/en/cranksets/"
+        test_url = "https://www.bike-components.de/en/components/brakes/"
         html_content = scraper.get_page(test_url)
         
         if html_content and len(html_content) > 1000:
@@ -129,7 +129,7 @@ def test_full_scraper():
             # Limit to just one category with 1 page and 2 products
             return [{
                 'name': 'Cranksets (Test)',
-                'url': 'https://www.bike-components.de/en/cranksets/',
+                'url': 'https://www.bike-components.de/en/components/brakes/',
                 'category': 'crankset',
                 'max_pages': 1
             }]

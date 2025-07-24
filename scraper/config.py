@@ -25,23 +25,23 @@ MAX_RETRIES = 3
 # Component categories mapping
 COMPONENT_CATEGORIES = {
     'cranksets': {
-        'url_path': '/en/cranksets/',
+        'url_path': 'en/components/drivetrain/cranks/',
         'db_category': 'crankset'
     },
     'cassettes': {
-        'url_path': '/en/cassettes/',
+        'url_path': '/en/components/drivetrain/cassettes/',
         'db_category': 'cassette'
     },
     'derailleurs': {
-        'url_path': '/en/derailleurs/',
+        'url_path': '/en/components/shifters-derailleurs/',
         'db_category': 'derailleur'
     },
     'brakes': {
-        'url_path': '/en/brakes/',
+        'url_path': '/en/components/brakes/',
         'db_category': 'brakes'
     },
     'frames': {
-        'url_path': '/en/frames/',
+        'url_path': '/en/components/frames/',
         'db_category': 'frame'
     }
 }
