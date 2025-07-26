@@ -45,38 +45,18 @@ class BikeComponentsDEScraper(BaseScraper):
     
     def get_component_categories(self):
         """Define component categories to scrape from bike-components.de"""
-        return [
-            {
-                'name': 'Cranksets',
-                'url': f"{self.base_url}en/components/drivetrain/cranks/",
-                'category': 'crankset',
-                'max_pages': 5  # Limit pages for testing
-            },
-            {
-                'name': 'Cassettes',
-                'url': f"{self.base_url}/en/components/drivetrain/cassettes/",
-                'category': 'cassette',
-                'max_pages': 5
-            },
-            {
-                'name': 'Derailleurs',
-                'url': f"{self.base_url}/en/components/shifters-derailleurs/",
-                'category': 'derailleur',
-                'max_pages': 5
-            },
-            {
-                'name': 'Brakes',
-                'url': f"{self.base_url}/en/components/brakes/",
-                'category': 'brakes',
-                'max_pages': 5
-            },
-            {
-                'name': 'Frames',
-                'url': f"{self.base_url}/en/components/frames/",
-                'category': 'frame',
-                'max_pages': 3
-            }
-        ]
+        from config import COMPONENT_CATEGORIES, MAX_PAGES_PER_CATEGORY
+        
+        categories = []
+        for key, config_data in COMPONENT_CATEGORIES.items():
+            categories.append({
+                'name': key.title(),
+                'url': f"{self.base_url}{config_data['url_path']}",
+                'category': config_data['db_category'],
+                'max_pages': MAX_PAGES_PER_CATEGORY
+            })
+        
+        return categories
     
     def scrape_category(self, category):
         """Scrape all products from a category"""

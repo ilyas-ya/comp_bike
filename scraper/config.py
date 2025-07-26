@@ -25,7 +25,7 @@ MAX_RETRIES = 3
 # Component categories mapping
 COMPONENT_CATEGORIES = {
     'cranksets': {
-        'url_path': 'en/components/drivetrain/cranks/',
+        'url_path': '/en/components/drivetrain/cranks/',
         'db_category': 'crankset'
     },
     'cassettes': {

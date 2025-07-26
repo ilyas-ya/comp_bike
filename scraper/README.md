@@ -149,13 +149,13 @@ COMPONENT_CATEGORIES = {
 
 The scraper supports these component categories:
 
-| Category | Database Type | Extracted Specifications |
-|----------|---------------|-------------------------|
-| **Cranksets** | `crankset` | Chainring sizes, crank length, spindle type, BCD |
-| **Cassettes** | `cassette` | Speed count, gear range, freehub type, individual cogs |
-| **Derailleurs** | `derailleur` | Speed count, max cog size, cage length, derailleur type |
-| **Brakes** | `brakes` | Brake type, mount type, rotor compatibility, fluid type |
-| **Frames** | `frame` | Frame type, material, geometry, standards |
+| Category | URL Path | Database Type | Extracted Specifications |
+|----------|----------|---------------|-------------------------|
+| **Cranksets** | `/en/components/drivetrain/cranks/` | `crankset` | Chainring sizes, crank length, spindle type, BCD |
+| **Cassettes** | `/en/components/drivetrain/cassettes/` | `cassette` | Speed count, gear range, freehub type, individual cogs |
+| **Derailleurs** | `/en/components/shifters-derailleurs/` | `derailleur` | Speed count, max cog size, cage length, derailleur type |
+| **Brakes** | `/en/components/brakes/` | `brakes` | Brake type, mount type, rotor compatibility, fluid type |
+| **Frames** | `/en/components/frames/` | `frame` | Frame type, material, geometry, standards |
 
 ## 🧪 Testing Commands
 
@@ -194,9 +194,12 @@ db.close()
 # Test web scraping capability
 docker-compose run --rm scraper python -c "
 import requests
-response = requests.get('https://www.bike-components.de/en/cranksets/')
+response = requests.get('https://www.bike-components.de/en/components/drivetrain/cranks/')
 print(f'Status: {response.status_code}, Length: {len(response.text)}')
 "
+
+# Test all category URLs
+docker-compose run --rm scraper python test_urls.py
 
 # Test scraper import
 docker-compose run --rm scraper python -c "
