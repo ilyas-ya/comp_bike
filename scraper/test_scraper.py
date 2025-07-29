@@ -57,27 +57,49 @@ def test_page_fetch():
         return False
 
 def test_product_parsing():
-    """Test parsing a single product"""
-    print("\nTesting product parsing...")
+    """Test parsing a single product in node format"""
+    print("\nTesting product parsing for node-based model...")
     try:
         from bs4 import BeautifulSoup
         
-        # Mock HTML for testing
-        mock_html = """
-        <html>
-            <head><title>Shimano Dura-Ace FC-R9200 Crankset</title></head>
-            <body>
-                <h1 class="product-title">Shimano Dura-Ace FC-R9200 Crankset</h1>
-                <div class="price">€599.99</div>
-                <div class="description">Professional road crankset with Hollowtech II spindle</div>
-                <table class="specifications">
-                    <tr><td>Speeds</td><td>11/12</td></tr>
-                    <tr><td>Chainrings</td><td>50/34T</td></tr>
-                    <tr><td>Crank Length</td><td>172.5mm</td></tr>
-                </table>
-            </body>
-        </html>
-        """
+        # Mock HTML for testing different component types
+        test_cases = [
+            {
+                'name': 'Crankset Node',
+                'html': """
+                <html>
+                    <body>
+                        <h1 class="product-title">Shimano Dura-Ace FC-R9200 12-speed Crankset</h1>
+                        <div class="description">Professional road crankset with Hollowtech II spindle, 50/34T chainrings</div>
+                        <table class="specifications">
+                            <tr><td>Speeds</td><td>12</td></tr>
+                            <tr><td>Chainrings</td><td>50/34T</td></tr>
+                            <tr><td>Crank Length</td><td>172.5mm</td></tr>
+                            <tr><td>Spindle</td><td>Hollowtech II</td></tr>
+                        </table>
+                    </body>
+                </html>
+                """,
+                'category': 'crankset'
+            },
+            {
+                'name': 'Cassette Node',
+                'html': """
+                <html>
+                    <body>
+                        <h1>SRAM XG-1275 12-speed Cassette</h1>
+                        <div class="description">12-speed XD driver cassette, 10-52T range</div>
+                        <table>
+                            <tr><td>Speed</td><td>12</td></tr>
+                            <tr><td>Range</td><td>10-52T</td></tr>
+                            <tr><td>Driver</td><td>XD</td></tr>
+                        </table>
+                    </body>
+                </html>
+                """,
+                'category': 'cassette'
+            }
+        ]
         
         class MockDB:
             def execute_query(self, query, params=None, fetch=True):
@@ -90,21 +112,69 @@ def test_product_parsing():
                 pass
         
         scraper = BikeComponentsDEScraper(MockDB())
-        soup = BeautifulSoup(mock_html, 'html.parser')
         
-        # Test basic info extraction
-        basic_info = scraper.extract_basic_info(soup, 'crankset')
-        print(f"Basic info: {basic_info}")
+        all_nodes = []
         
-        # Test specification extraction
-        specs = scraper.extract_specifications(soup, 'crankset')
-        print(f"Specifications: {specs}")
+        for test_case in test_cases:
+            print(f"\n--- Testing {test_case['name']} ---")
+            soup = BeautifulSoup(test_case['html'], 'html.parser')
+            
+            # Extract node data
+            node_data = scraper.extract_basic_info(soup, test_case['category'])
+            if node_data:
+                specs = scraper.extract_specifications(soup, test_case['category'])
+                node_data['specs'] = specs
+                
+                # Print node in the format expected by the graph model
+                print("🔗 NODE DATA:")
+                print(f"  ID: {node_data.get('brand', 'Unknown')}-{node_data.get('model', 'Unknown')}")
+                print(f"  Brand: {node_data.get('brand')}")
+                print(f"  Model: {node_data.get('model')}")
+                print(f"  Type: {node_data.get('type')}")
+                print(f"  Speed: {node_data.get('speed')}")
+                print(f"  Specs: {node_data.get('specs', {})}")
+                
+                all_nodes.append(node_data)
+            else:
+                print(f"❌ Failed to extract node data for {test_case['name']}")
         
-        if basic_info and basic_info.get('name'):
-            print("✅ Product parsing successful")
+        # Print summary in node format
+        print(f"\n--- NODE SUMMARY ---")
+        print(f"Total nodes extracted: {len(all_nodes)}")
+        
+        for i, node in enumerate(all_nodes, 1):
+            print(f"\nNode {i}:")
+            print(f"  {node.get('brand')} {node.get('model')} ({node.get('type')})")
+            if node.get('speed'):
+                print(f"  Speed: {node.get('speed')}")
+            
+            # Show key specs for compatibility
+            specs = node.get('specs', {})
+            if isinstance(specs, str):
+                import json
+                try:
+                    specs = json.loads(specs)
+                except:
+                    specs = {}
+            
+            key_specs = []
+            if 'driver_body' in specs:
+                key_specs.append(f"Driver: {specs['driver_body']}")
+            if 'mount_type' in specs:
+                key_specs.append(f"Mount: {specs['mount_type']}")
+            if 'spindle_type' in specs:
+                key_specs.append(f"Spindle: {specs['spindle_type']}")
+            if 'range' in specs:
+                key_specs.append(f"Range: {specs['range']}")
+            
+            if key_specs:
+                print(f"  Key specs: {', '.join(key_specs)}")
+        
+        if all_nodes:
+            print("✅ Product parsing for node model successful")
             return True
         else:
-            print("❌ Product parsing failed")
+            print("❌ Product parsing for node model failed")
             return False
             
     except Exception as e:
@@ -491,9 +561,154 @@ def test_html_structure_analysis():
         print(f"❌ HTML structure analysis failed: {e}")
         return False
 
+def test_node_data_extraction():
+    """Test extracting real data from bike-components.de in node format"""
+    print("\nTesting node data extraction from real pages...")
+    
+    try:
+        import requests
+        from bs4 import BeautifulSoup
+        from fake_useragent import UserAgent
+        
+        session = requests.Session()
+        ua = UserAgent()
+        session.headers.update({'User-Agent': ua.random})
+        
+        # Test URLs for different component types
+        test_urls = [
+            ("https://www.bike-components.de/en/components/drivetrain/cranks/", "crankset"),
+            ("https://www.bike-components.de/en/components/drivetrain/cassettes/", "cassette")
+        ]
+        
+        class MockDB:
+            def execute_query(self, query, params=None, fetch=True):
+                return []
+            def commit(self):
+                pass
+            def rollback(self):
+                pass
+            def close(self):
+                pass
+        
+        scraper = BikeComponentsDEScraper(MockDB())
+        extracted_nodes = []
+        
+        for category_url, category_type in test_urls:
+            print(f"\n--- Extracting {category_type} nodes from {category_url} ---")
+            
+            try:
+                # Get category page
+                response = session.get(category_url, timeout=30)
+                if response.status_code != 200:
+                    print(f"❌ Failed to fetch category page: HTTP {response.status_code}")
+                    continue
+                
+                soup = BeautifulSoup(response.text, 'html.parser')
+                
+                # Find product links
+                product_links = scraper.extract_product_links(soup)
+                
+                if not product_links:
+                    print(f"❌ No product links found")
+                    continue
+                
+                print(f"Found {len(product_links)} product links")
+                
+                # Extract data from first few products
+                for i, product_link in enumerate(product_links[:3]):  # Limit to 3 for testing
+                    try:
+                        if product_link.startswith('/'):
+                            product_url = f"https://www.bike-components.de{product_link}"
+                        else:
+                            product_url = product_link
+                        
+                        print(f"\n  Extracting node {i+1}: {product_url}")
+                        
+                        # Get product page
+                        product_response = session.get(product_url, timeout=30)
+                        if product_response.status_code != 200:
+                            print(f"    ❌ Failed to fetch product: HTTP {product_response.status_code}")
+                            continue
+                        
+                        product_soup = BeautifulSoup(product_response.text, 'html.parser')
+                        
+                        # Extract node data
+                        node_data = scraper.extract_basic_info(product_soup, category_type)
+                        if node_data:
+                            specs = scraper.extract_specifications(product_soup, category_type)
+                            node_data['specs'] = specs
+                            node_data['source_url'] = product_url
+                            
+                            # Print node data
+                            print(f"    🔗 NODE EXTRACTED:")
+                            print(f"      Brand: {node_data.get('brand')}")
+                            print(f"      Model: {node_data.get('model')}")
+                            print(f"      Type: {node_data.get('type')}")
+                            print(f"      Speed: {node_data.get('speed')}")
+                            
+                            # Show key compatibility specs
+                            specs = node_data.get('specs', {})
+                            if specs:
+                                print(f"      Key Specs:")
+                                for key, value in list(specs.items())[:5]:  # First 5 specs
+                                    print(f"        {key}: {value}")
+                            
+                            extracted_nodes.append(node_data)
+                        else:
+                            print(f"    ❌ Failed to extract node data")
+                        
+                        # Small delay between products
+                        import time
+                        time.sleep(1)
+                        
+                    except Exception as e:
+                        print(f"    ❌ Error extracting product {i+1}: {str(e)}")
+                        continue
+                
+            except Exception as e:
+                print(f"❌ Error processing category {category_type}: {str(e)}")
+                continue
+        
+        # Summary
+        print(f"\n--- NODE EXTRACTION SUMMARY ---")
+        print(f"Total nodes extracted: {len(extracted_nodes)}")
+        
+        # Group by type
+        by_type = {}
+        for node in extracted_nodes:
+            node_type = node.get('type', 'unknown')
+            if node_type not in by_type:
+                by_type[node_type] = []
+            by_type[node_type].append(node)
+        
+        for node_type, nodes in by_type.items():
+            print(f"\n{node_type.upper()} NODES ({len(nodes)}):")
+            for node in nodes:
+                print(f"  • {node.get('brand')} {node.get('model')}")
+                if node.get('speed'):
+                    print(f"    Speed: {node.get('speed')}")
+                
+                # Show compatibility-relevant specs
+                specs = node.get('specs', {})
+                if 'driver_body' in specs:
+                    print(f"    Driver Body: {specs['driver_body']}")
+                if 'mount_type' in specs:
+                    print(f"    Mount: {specs['mount_type']}")
+        
+        if extracted_nodes:
+            print("\n✅ Node data extraction successful")
+            return True
+        else:
+            print("\n❌ No nodes extracted")
+            return False
+        
+    except Exception as e:
+        print(f"❌ Node data extraction failed: {e}")
+        return False
+
 def main():
     """Run all tests"""
-    print("=== Bike Components DE Scraper Tests ===\n")
+    print("=== Bike Components DE Scraper Tests (Node-Based Model) ===\n")
     
     tests = [
         ("Database Connection", test_connection),
@@ -501,7 +716,8 @@ def main():
         ("Page Content Inspection", test_page_content_inspection),
         ("Product Page Inspection", test_product_page_inspection),
         ("HTML Structure Analysis", test_html_structure_analysis),
-        ("Product Parsing", test_product_parsing),
+        ("Product Parsing (Node Format)", test_product_parsing),
+        ("Node Data Extraction", test_node_data_extraction),
         ("Full Scraper", test_full_scraper)
     ]
     

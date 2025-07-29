@@ -65,72 +65,66 @@ class BaseScraper(ABC):
                     raise
     
     def save_component(self, component_data):
-        """Save component data to database"""
+        """Save component data to database as a node in the compatibility graph"""
         try:
-            # Validate required fields
-            required_fields = ['name', 'brand', 'category']
+            # Validate required fields for node-based model
+            required_fields = ['brand', 'model', 'type']
             for field in required_fields:
                 if not component_data.get(field):
                     self.logger.warning(f"Missing required field '{field}' in component data")
                     return False
             
-            # Check if component already exists
+            # Check if component node already exists
             check_query = """
                 SELECT id FROM components_component 
-                WHERE brand = %(brand)s AND name = %(name)s AND category = %(category)s
+                WHERE brand = %(brand)s AND model = %(model)s AND type = %(type)s
             """
             
             existing = self.db.execute_query(check_query, {
                 'brand': component_data['brand'],
-                'name': component_data['name'],
-                'category': component_data['category']
+                'model': component_data['model'],
+                'type': component_data['type']
             })
             
             if existing:
-                # Update existing component
+                # Update existing component node
                 component_id = existing[0]['id']
-                self.logger.info(f"Updating existing component: {component_data['brand']} {component_data['name']}")
+                self.logger.info(f"Updating existing component node: {component_data['brand']} {component_data['model']}")
                 
                 update_query = """
                     UPDATE components_component
-                    SET specifications = %(specifications)s,
-                        price_range = %(price_range)s,
-                        description = %(description)s,
+                    SET speed = %(speed)s,
+                        specs = %(specs)s,
                         updated_at = NOW()
                     WHERE id = %(id)s
                 """
                 
                 update_data = {
                     'id': component_id,
-                    'specifications': component_data.get('specifications', '{}'),
-                    'price_range': component_data.get('price_range', ''),
-                    'description': component_data.get('description', '')
+                    'speed': component_data.get('speed'),
+                    'specs': component_data.get('specs', '{}')
                 }
                 
                 self.db.execute_query(update_query, update_data, fetch=False)
                 
             else:
-                # Insert new component
-                self.logger.info(f"Inserting new component: {component_data['brand']} {component_data['name']}")
+                # Insert new component node
+                self.logger.info(f"Inserting new component node: {component_data['brand']} {component_data['model']}")
                 
                 insert_query = """
                     INSERT INTO components_component
-                    (name, brand, model, category, specifications, price_range, description, 
-                     created_at, updated_at, is_active)
+                    (brand, model, type, speed, specs, created_at, updated_at)
                     VALUES
-                    (%(name)s, %(brand)s, %(model)s, %(category)s, %(specifications)s, 
-                     %(price_range)s, %(description)s, NOW(), NOW(), true)
+                    (%(brand)s, %(model)s, %(type)s, %(speed)s, %(specs)s, NOW(), NOW())
                     RETURNING id
                 """
                 
                 insert_data = {
-                    'name': component_data['name'],
                     'brand': component_data['brand'],
-                    'model': component_data.get('model', ''),
-                    'category': component_data['category'],
-                    'specifications': component_data.get('specifications', '{}'),
-                    'price_range': component_data.get('price_range', ''),
-                    'description': component_data.get('description', '')
+                    'model': component_data['model'],
+                    'type': component_data['type'],
+                    'speed': component_data.get('speed'),
+                    'specs': component_data.get('specs', '{}')
                 }
                 
                 result = self.db.execute_query(insert_query, insert_data)
@@ -141,7 +135,7 @@ class BaseScraper(ABC):
             
         except Exception as e:
             self.db.rollback()
-            self.logger.error(f"Error saving component {component_data.get('name', 'Unknown')}: {str(e)}")
+            self.logger.error(f"Error saving component node {component_data.get('model', 'Unknown')}: {str(e)}")
             return False
     
     def clean_text(self, text):

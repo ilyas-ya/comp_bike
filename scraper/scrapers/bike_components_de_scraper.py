@@ -106,59 +106,81 @@ class BikeComponentsDEScraper(BaseScraper):
         """Extract product links from category page"""
         product_links = []
         
-        # Look for product links - these are common selectors for bike-components.de
-        # You may need to adjust these selectors based on the actual HTML structure
-        link_selectors = [
-            'a[href*="/product/"]',
-            '.product-item a',
-            '.product-link',
-            'a[href*="/en/"]'
-        ]
+        # Based on debug analysis, bike-components.de uses .item selector
+        # and product links have format like /en/BRAND/PRODUCT-NAME-p12345/
         
-        for selector in link_selectors:
-            links = soup.select(selector)
-            if links:
-                for link in links:
-                    href = link.get('href')
-                    if href and '/product/' in href:
+        # Primary selector: .item elements containing product links
+        item_elements = soup.select('.item')
+        self.logger.info(f"Found {len(item_elements)} .item elements")
+        
+        for item in item_elements:
+            # Look for links within each item
+            links = item.find_all('a', href=True)
+            for link in links:
+                href = link.get('href')
+                if href:
+                    # Check if it's a product link (contains -p followed by numbers)
+                    if '/en/' in href and '-p' in href and href.endswith('/'):
                         product_links.append(href)
-                break
         
-        # Remove duplicates
-        product_links = list(set(product_links))
+        # Fallback: look for direct product links with the pattern
+        if not product_links:
+            self.logger.info("No links found in .item elements, trying direct selectors")
+            
+            # Look for links that match the product URL pattern
+            all_links = soup.find_all('a', href=True)
+            for link in all_links:
+                href = link.get('href')
+                if href and '/en/' in href and '-p' in href and any(brand.lower() in href.lower() for brand in ['shimano', 'sram', 'campagnolo', 'fsa', 'race-face']):
+                    product_links.append(href)
         
-        self.logger.info(f"Found {len(product_links)} product links")
-        return product_links
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_links = []
+        for link in product_links:
+            if link not in seen:
+                seen.add(link)
+                unique_links.append(link)
+        
+        self.logger.info(f"Found {len(unique_links)} product links")
+        
+        # Log some sample links for debugging
+        if unique_links:
+            self.logger.info(f"Sample product links:")
+            for i, link in enumerate(unique_links[:3]):
+                self.logger.info(f"  {i+1}. {link}")
+        
+        return unique_links
     
     def scrape_product(self, product_url, category):
-        """Scrape individual product details"""
+        """Scrape individual product details for node-based model"""
         try:
             self.logger.info(f"Scraping product: {product_url}")
             
             html_content = self.get_page(product_url)
             soup = BeautifulSoup(html_content, 'html.parser')
             
-            # Extract basic product information
-            product_data = self.extract_basic_info(soup, category)
+            # Extract basic product information for node
+            node_data = self.extract_basic_info(soup, category)
             
-            if not product_data:
+            if not node_data:
                 return None
             
-            # Extract specifications based on category
+            # Extract specifications for node specs field
             specifications = self.extract_specifications(soup, category)
-            product_data['specifications'] = json.dumps(specifications)
+            node_data['specs'] = json.dumps(specifications)
             
-            # Extract additional details
-            product_data.update(self.extract_additional_details(soup))
+            # Add source URL for reference
+            node_data['source_url'] = product_url
             
-            return product_data
+            return node_data
             
         except Exception as e:
             self.logger.error(f"Error scraping product {product_url}: {str(e)}")
             return None
     
     def extract_basic_info(self, soup, category):
-        """Extract basic product information"""
+        """Extract basic product information for node-based model"""
         try:
             # Extract product name - try multiple selectors
             name_selectors = [
@@ -185,11 +207,15 @@ class BikeComponentsDEScraper(BaseScraper):
             # Clean up the model name
             model = self.clean_model_name(name, brand)
             
+            # Extract speed information for node model
+            speed = self.extract_speed_from_text(name + " " + soup.get_text())
+            
             return {
-                'name': name,
                 'brand': brand,
                 'model': model,
-                'category': category,
+                'type': category,  # Maps to the 'type' field in node model
+                'speed': speed,
+                'full_name': name  # Keep for reference
             }
             
         except Exception as e:
@@ -239,7 +265,7 @@ class BikeComponentsDEScraper(BaseScraper):
         return full_name
     
     def extract_specifications(self, soup, category):
-        """Extract specifications based on component category"""
+        """Extract specifications for node-based model specs field"""
         specs = {}
         
         # Look for specification tables or lists
@@ -258,7 +284,7 @@ class BikeComponentsDEScraper(BaseScraper):
                 specs.update(self.parse_spec_table(spec_element))
                 break
         
-        # Category-specific specification extraction
+        # Category-specific specification extraction for node model
         if category == 'crankset':
             specs.update(self.extract_crankset_specs(soup))
         elif category == 'cassette':
@@ -271,6 +297,29 @@ class BikeComponentsDEScraper(BaseScraper):
             specs.update(self.extract_frame_specs(soup))
         
         return specs
+    
+    def extract_speed_from_text(self, text):
+        """Extract speed information from text for node model"""
+        import re
+        
+        # Look for speed patterns like "11-speed", "12 speed", "11s", etc.
+        speed_patterns = [
+            r'(\d+)[-\s]*speed',
+            r'(\d+)s\b',
+            r'(\d+)[-\s]*fach',  # German
+            r'(\d+)[-\s]*gang'   # German
+        ]
+        
+        text_lower = text.lower()
+        for pattern in speed_patterns:
+            match = re.search(pattern, text_lower)
+            if match:
+                speed = int(match.group(1))
+                # Validate reasonable speed range for bike components
+                if 1 <= speed <= 15:
+                    return speed
+        
+        return None
     
     def parse_spec_table(self, spec_element):
         """Parse specification table or list"""
@@ -336,7 +385,7 @@ class BikeComponentsDEScraper(BaseScraper):
         return specs
     
     def extract_cassette_specs(self, soup):
-        """Extract cassette-specific specifications"""
+        """Extract cassette-specific specifications for node model"""
         specs = {}
         
         text_content = soup.get_text().lower()
@@ -352,12 +401,24 @@ class BikeComponentsDEScraper(BaseScraper):
         range_match = re.search(range_pattern, text_content)
         if range_match:
             specs['range'] = f"{range_match.group(1)}-{range_match.group(2)}T"
+            specs['min_cog'] = int(range_match.group(1))
+            specs['max_cog'] = int(range_match.group(2))
         
-        # Extract freehub type
-        if 'shimano' in text_content and 'hg' in text_content:
-            specs['freehub_type'] = 'Shimano HG'
-        elif 'sram' in text_content and 'xd' in text_content:
-            specs['freehub_type'] = 'SRAM XD'
+        # Extract driver body type (critical for compatibility edges)
+        if 'xd' in text_content:
+            specs['driver_body'] = 'XD'
+        elif 'xdr' in text_content:
+            specs['driver_body'] = 'XDR'
+        elif 'hg' in text_content or 'shimano' in text_content:
+            specs['driver_body'] = 'HG'
+        elif 'microspline' in text_content:
+            specs['driver_body'] = 'Microspline'
+        
+        # Extract mount type for compatibility
+        if 'centerlock' in text_content:
+            specs['mount_type'] = 'centerlock'
+        elif '6 bolt' in text_content or 'six bolt' in text_content:
+            specs['mount_type'] = '6_bolt'
         
         return specs
     
