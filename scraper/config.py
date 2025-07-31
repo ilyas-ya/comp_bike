@@ -18,8 +18,8 @@ MAX_DELAY = 3.0  # Maximum delay between requests (seconds)
 PAGE_DELAY = 2.0  # Additional delay between pages (seconds)
 
 # Scraping limits (for testing and being respectful)
-MAX_PAGES_PER_CATEGORY = 5
-MAX_PRODUCTS_PER_PAGE = 10
+MAX_PAGES_PER_CATEGORY = 10  # Increased for production scraping
+MAX_PRODUCTS_PER_PAGE = 60   # Increased for production scraping
 MAX_RETRIES = 3
 
 # Component categories mapping

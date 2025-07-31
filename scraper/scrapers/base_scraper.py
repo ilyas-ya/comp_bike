@@ -74,6 +74,14 @@ class BaseScraper(ABC):
                     self.logger.warning(f"Missing required field '{field}' in component data")
                     return False
             
+            # Prepare specs as JSON string if it's not already
+            specs = component_data.get('specs', {})
+            if isinstance(specs, dict):
+                import json
+                specs_json = json.dumps(specs)
+            else:
+                specs_json = specs
+            
             # Check if component node already exists
             check_query = """
                 SELECT id FROM components_component 
@@ -94,18 +102,20 @@ class BaseScraper(ABC):
                 update_query = """
                     UPDATE components_component
                     SET speed = %(speed)s,
-                        specs = %(specs)s,
-                        updated_at = NOW()
+                        specs = %(specs)s::jsonb,
+                        updated_at = CURRENT_TIMESTAMP
                     WHERE id = %(id)s
+                    RETURNING id
                 """
                 
                 update_data = {
                     'id': component_id,
                     'speed': component_data.get('speed'),
-                    'specs': component_data.get('specs', '{}')
+                    'specs': specs_json
                 }
                 
-                self.db.execute_query(update_query, update_data, fetch=False)
+                result = self.db.execute_query(update_query, update_data)
+                component_id = result[0]['id'] if result else component_id
                 
             else:
                 # Insert new component node
@@ -113,9 +123,9 @@ class BaseScraper(ABC):
                 
                 insert_query = """
                     INSERT INTO components_component
-                    (brand, model, type, speed, specs, created_at, updated_at)
+                    (brand, model, type, speed, specs)
                     VALUES
-                    (%(brand)s, %(model)s, %(type)s, %(speed)s, %(specs)s, NOW(), NOW())
+                    (%(brand)s, %(model)s, %(type)s, %(speed)s, %(specs)s::jsonb)
                     RETURNING id
                 """
                 
@@ -124,13 +134,14 @@ class BaseScraper(ABC):
                     'model': component_data['model'],
                     'type': component_data['type'],
                     'speed': component_data.get('speed'),
-                    'specs': component_data.get('specs', '{}')
+                    'specs': specs_json
                 }
                 
                 result = self.db.execute_query(insert_query, insert_data)
                 component_id = result[0]['id'] if result else None
             
             self.db.commit()
+            self.logger.info(f"Successfully saved component node with ID: {component_id}")
             return component_id
             
         except Exception as e:
