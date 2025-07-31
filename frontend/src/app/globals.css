@@ -2,28 +2,69 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import custom component styles */
+@import "../styles/components.css";
+
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  /* Cyberpunk theme color variables */
+  --color-bg-primary: #0a0a0a;
+  --color-bg-secondary: #1a1a1a;
+  --color-bg-tertiary: #2a2a2a;
+
+  --color-accent-primary: #dc2626;
+  --color-accent-hover: #ff0040;
+  --color-accent-active: #ff1744;
+  --color-accent-muted: #b91c1c;
+
+  --color-text-primary: #ffffff;
+  --color-text-secondary: rgba(255, 255, 255, 0.9);
+  --color-text-tertiary: rgba(255, 255, 255, 0.8);
+  --color-text-muted: rgba(255, 255, 255, 0.7);
+
+  --color-border-primary: rgba(220, 38, 38, 0.3);
+  --color-border-secondary: rgba(220, 38, 38, 0.2);
+  --color-border-muted: rgba(255, 255, 255, 0.1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-}
-
+/* Apply black background and white text by default */
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+}
+
+/* Ensure all text elements inherit white color by default */
+html {
+  background-color: var(--color-bg-primary);
+}
+
+/* Reset any default browser styles that might interfere with the theme */
+* {
+  border-color: var(--color-border-muted);
+}
+
+/* Ensure proper text color inheritance */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+div,
+a {
+  color: inherit;
+}
+
+/* Default link styles with red accent */
+a {
+  color: var(--color-text-primary);
+  transition: color 0.2s ease-in-out;
+}
+
+a:hover {
+  color: var(--color-accent-hover);
 }
 
 @layer utilities {
