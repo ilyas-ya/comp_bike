@@ -2,11 +2,9 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files
+# Install dependencies for better caching
 COPY package*.json ./
-
-# Install dependencies
-RUN npm ci
+RUN npm install
 
 # Copy source code
 COPY . .
@@ -14,5 +12,5 @@ COPY . .
 # Expose port
 EXPOSE 3000
 
-# Development command
+# Development command with hot reload
 CMD ["npm", "run", "dev"]

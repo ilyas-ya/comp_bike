@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Theme Utilities Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Test our custom utility classes */
+      .test-container {
+        padding: 2rem;
+        margin: 1rem;
+        border: 1px solid;
+        border-radius: 0.5rem;
+      }
+    </style>
+  </head>
+  <body class="theme-bg-primary theme-text-primary">
+    <div class="p-8 space-y-8">
+      <h1 class="text-3xl font-bold theme-text-primary">
+        Theme Utility Classes Test
+      </h1>
+
+      <!-- Background utilities test -->
+      <section>
+        <h2 class="text-xl font-semibold mb-4 theme-text-secondary">
+          Background Utilities
+        </h2>
+        <div class="grid grid-cols-3 gap-4">
+          <div class="test-container theme-bg-primary theme-border-primary">
+            <p class="theme-text-primary">Primary Background</p>
+          </div>
+          <div class="test-container theme-bg-secondary theme-border-secondary">
+            <p class="theme-text-primary">Secondary Background</p>
+          </div>
+          <div class="test-container theme-bg-tertiary theme-border-muted">
+            <p class="theme-text-primary">Tertiary Background</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Text utilities test -->
+      <section>
+        <h2 class="text-xl font-semibold mb-4 theme-text-secondary">
+          Text Utilities
+        </h2>
+        <div class="space-y-2">
+          <p class="theme-text-primary">Primary text (100% opacity)</p>
+          <p class="theme-text-secondary">Secondary text (90% opacity)</p>
+          <p class="theme-text-tertiary">Tertiary text (80% opacity)</p>
+          <p class="theme-text-muted">Muted text (70% opacity)</p>
+          <p class="theme-text-subtle">Subtle text (60% opacity)</p>
+          <p class="theme-text-faint">Faint text (50% opacity)</p>
+        </div>
+      </section>
+
+      <!-- Accent utilities test -->
+      <section>
+        <h2 class="text-xl font-semibold mb-4 theme-text-secondary">
+          Accent Utilities
+        </h2>
+        <div class="space-y-4">
+          <button class="theme-button-primary px-4 py-2 rounded">
+            Primary Button
+          </button>
+          <button class="theme-button-secondary px-4 py-2 rounded border">
+            Secondary Button
+          </button>
+          <a href="#" class="theme-accent-hover">Hover Link</a>
+          <span class="theme-accent-active">Active State</span>
+        </div>
+      </section>
+
+      <!-- Border utilities test -->
+      <section>
+        <h2 class="text-xl font-semibold mb-4 theme-text-secondary">
+          Border Utilities
+        </h2>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="test-container theme-bg-secondary theme-border-primary">
+            <p class="theme-text-primary">Primary Border</p>
+          </div>
+          <div class="test-container theme-bg-secondary theme-border-hover">
+            <p class="theme-text-primary">Hover Border (hover me)</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Combined utilities test -->
+      <section>
+        <h2 class="text-xl font-semibold mb-4 theme-text-secondary">
+          Combined Utilities
+        </h2>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="theme-card p-4 rounded border">
+            <h3 class="font-semibold mb-2">Theme Card</h3>
+            <p class="theme-text-tertiary">
+              This is a card using combined theme utilities
+            </p>
+          </div>
+          <div class="theme-bg-secondary-alpha p-4 rounded theme-border-accent">
+            <h3 class="font-semibold mb-2">Alpha Background</h3>
+            <input
+              type="text"
+              placeholder="Test input"
+              class="theme-input w-full p-2 rounded"
+            />
+          </div>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>
