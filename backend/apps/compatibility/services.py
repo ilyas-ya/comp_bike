@@ -1,4 +1,5 @@
 from typing import Dict, List, Any
+from django.db import models
 from .models import CompatibilityRule
 from apps.components.models import Component, Adapter
 

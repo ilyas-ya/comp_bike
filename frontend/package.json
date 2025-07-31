@@ -20,6 +20,13 @@
     "tailwindcss": "^3.3.5",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.31",
+<<<<<<< HEAD
+=======
+    "axios": "^1.6.2",
+    "@tanstack/react-query": "^4.36.1",
+    "zustand": "^4.4.7",
+    "clsx": "^2.0.0",
+>>>>>>> 1476c9d15336575ae3e3b1d628e5fb14f05c5ff7
     "lucide-react": "^0.294.0",
     "@types/node": "^20.9.0",
     "@types/react": "^18.2.37",

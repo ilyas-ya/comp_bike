@@ -37,7 +37,7 @@
   - Ajouter des animations d'apparition fluides
   - _Requirements: 1.1, 1.2, 3.1, 3.2_
 
-- [-] 6. Optimiser la responsivité pour tous les appareils
+- [ ] 6. Optimiser la responsivité pour tous les appareils
 
   - Ajuster les tailles et espacements pour mobile
   - Optimiser les animations pour les appareils moins puissants
