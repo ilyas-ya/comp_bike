@@ -7,6 +7,9 @@ export const getCategoryDisplayName = (category: ComponentCategory): string => {
     brake_system: "Brake System",
     wheel_frame: "Wheel/Frame",
     seatpost: "Seatpost",
+    fork: "Fork",
+    handlebars: "Handlebars",
+    crankset: "Crankset",
   };
   return categoryNames[category] || category;
 };

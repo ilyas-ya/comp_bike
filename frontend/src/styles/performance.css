@@ -1,0 +1,113 @@
+/* Performance optimizations for faster page transitions */
+
+/* Disable complex animations during page transitions */
+.page-transition-loading * {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Page transition states */
+.page-transitioning {
+  pointer-events: none;
+}
+
+/* Smooth page transitions */
+body {
+  transition: opacity 150ms ease-out;
+}
+
+.page-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 200ms ease-out, transform 200ms ease-out;
+}
+
+.page-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 150ms ease-in, transform 150ms ease-in;
+}
+
+/* Navigation loading state */
+.nav-loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Optimize will-change for better GPU acceleration */
+.cyberpunk-gpu-accelerated {
+  will-change: auto;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Reduce animation complexity on mobile/low-end devices */
+@media (max-width: 768px), (prefers-reduced-motion: reduce) {
+  .cyberpunk-glow-breathing,
+  .cyberpunk-pulse-intense,
+  .cyberpunk-flicker {
+    animation: none !important;
+  }
+
+  .bike-area-compatible-enhanced,
+  .bike-area-conditional-enhanced,
+  .bike-area-selected-enhanced {
+    animation: none !important;
+    filter: drop-shadow(0 0 4px currentColor);
+  }
+
+  /* Disable page transitions on low-end devices */
+  .page-enter-active,
+  .page-exit-active {
+    transition: none !important;
+  }
+}
+
+/* Optimize backdrop-filter usage */
+.glassmorphism-cyberpunk,
+.glassmorphism-medium,
+.glassmorphism-heavy {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Limit concurrent animations */
+@media (max-width: 1024px) {
+  .cyberpunk-legend-scan-line,
+  .cyberpunk-legend-data-stream,
+  .cyberpunk-legend-data-flow {
+    display: none;
+  }
+}
+
+/* Optimize transitions for better performance */
+.optimized-transition {
+  transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+}
+
+/* Remove expensive box-shadows on mobile */
+@media (max-width: 640px) {
+  .bike-diagram-container {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* Preload optimization */
+.preload-important {
+  content: "";
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+  width: 1px;
+  height: 1px;
+}

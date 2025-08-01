@@ -17,7 +17,28 @@ export type ComponentCategory =
   | "cassette_derailleur"
   | "brake_system"
   | "wheel_frame"
-  | "seatpost";
+  | "seatpost"
+  | "fork"
+  | "handlebars"
+  | "crankset";
+
+export interface BikeModel {
+  id: string;
+  name: string;
+  brand: string;
+  type: "road" | "mountain" | "gravel" | "hybrid";
+  year: number;
+  image?: string;
+  description?: string;
+  price_range?: string;
+  default_components: Record<ComponentCategory, string>;
+}
+
+export interface BikeConfiguration {
+  bike_model?: BikeModel;
+  components: Record<ComponentCategory, Component | null>;
+  last_modified: Date;
+}
 
 export interface BikeComponentArea {
   id: string;

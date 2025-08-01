@@ -1,0 +1,11 @@
+{
+  "name": "performance-check",
+  "scripts": {
+    "analyze": "cross-env ANALYZE=true npm run build",
+    "build:analyze": "cross-env ANALYZE=true next build"
+  },
+  "devDependencies": {
+    "@next/bundle-analyzer": "^14.0.3",
+    "cross-env": "^7.0.3"
+  }
+}

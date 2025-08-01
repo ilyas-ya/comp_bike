@@ -46,7 +46,18 @@ export function useResponsive(): {
 
   const detectCapabilities = useCallback((): DeviceCapabilities => {
     if (typeof window === "undefined") {
-      return capabilities;
+      return {
+        isMobile: false,
+        isTablet: false,
+        isDesktop: true,
+        isHighDPI: false,
+        isLowEndDevice: false,
+        isTouchDevice: false,
+        prefersReducedMotion: false,
+        screenWidth: 1024,
+        screenHeight: 768,
+        devicePixelRatio: 1,
+      };
     }
 
     const screenWidth = window.innerWidth;
@@ -90,7 +101,7 @@ export function useResponsive(): {
       screenHeight,
       devicePixelRatio,
     };
-  }, [capabilities]);
+  }, []);
 
   const getResponsiveConfig = useCallback(
     (caps: DeviceCapabilities): ResponsiveConfig => {

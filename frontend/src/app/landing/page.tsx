@@ -6,10 +6,12 @@ import {
   HeroSection,
   FeaturesSection,
   HowItWorksSection,
+  TestimonialsSection,
   PricingSection,
   CTASection,
   Footer,
 } from "@/components/landing";
+import { ScrollToTop } from "@/components/ScrollToTop";
 
 export default function LandingPage() {
   return (
@@ -19,9 +21,11 @@ export default function LandingPage() {
       <HeroSection />
       <FeaturesSection />
       <HowItWorksSection />
+      <TestimonialsSection />
       <PricingSection />
       <CTASection />
       <Footer />
+      <ScrollToTop />
     </div>
   );
 }
