@@ -1,4 +1,8 @@
+import uuid
 from django.db import models
+
+# Note: Standards are now integrated as metadata in Component.specs JSON field
+# This model is kept for reference and can store standard definitions
 
 STANDARD_CATEGORIES = [
     ('bottom_bracket', 'Bottom Bracket'),
@@ -8,10 +12,13 @@ STANDARD_CATEGORIES = [
     ('seatpost', 'Seatpost'),
     ('cassette', 'Cassette'),
     ('chain', 'Chain'),
+    ('driver_body', 'Driver Body'),
+    ('mount_type', 'Mount Type'),
 ]
 
-class Standard(models.Model):
-    """Mechanical standards for bike components"""
+class StandardDefinition(models.Model):
+    """Mechanical standards definitions - Referenced in Component.specs"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100, unique=True)
     category = models.CharField(max_length=50, choices=STANDARD_CATEGORIES)
     description = models.TextField()

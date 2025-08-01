@@ -1,6 +1,7 @@
+import uuid
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-from apps.components.models import Component, Adapter
+from apps.components.models import Component, CompatibilityLink
 
 COMPATIBILITY_STATUS = [
     ('compatible', 'Compatible'),
@@ -9,7 +10,8 @@ COMPATIBILITY_STATUS = [
 ]
 
 class CompatibilityRule(models.Model):
-    """Explicit compatibility rules between components"""
+    """Explicit compatibility rules between components - Enhanced version"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     component_a = models.ForeignKey(Component, on_delete=models.CASCADE, related_name='compatibility_a')
     component_b = models.ForeignKey(Component, on_delete=models.CASCADE, related_name='compatibility_b')
     
@@ -22,8 +24,8 @@ class CompatibilityRule(models.Model):
     )
     explanation = models.TextField()
     
-    # Optional adapters needed for compatibility
-    required_adapters = models.ManyToManyField(Adapter, blank=True)
+    # Link to the basic compatibility link if it exists
+    base_link = models.ForeignKey(CompatibilityLink, on_delete=models.SET_NULL, null=True, blank=True)
     
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
@@ -43,7 +45,8 @@ class CompatibilityRule(models.Model):
         return f"{self.component_a} + {self.component_b}: {self.get_status_display()}"
 
 class CompatibilityCheck(models.Model):
-    """Log of compatibility checks performed"""
+    """Log of compatibility checks performed - Enhanced with UUID"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     component_a = models.ForeignKey(Component, on_delete=models.CASCADE, related_name='checks_a')
     component_b = models.ForeignKey(Component, on_delete=models.CASCADE, related_name='checks_b')
     

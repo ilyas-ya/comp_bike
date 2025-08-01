@@ -2,15 +2,14 @@ from rest_framework import viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Standard, STANDARD_CATEGORIES
-from .serializers import StandardSerializer
+from .models import StandardDefinition, STANDARD_CATEGORIES
+from .serializers import StandardDefinitionSerializer
 
-class StandardViewSet(viewsets.ModelViewSet):
-    """ViewSet for managing mechanical standards"""
-    queryset = Standard.objects.filter(is_active=True)
-    serializer_class = StandardSerializer
+class StandardDefinitionViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing standard definitions"""
+    queryset = StandardDefinition.objects.filter(is_active=True)
+    serializer_class = StandardDefinitionSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['category']
     search_fields = ['name', 'description']
     ordering_fields = ['name', 'category', 'created_at']
     ordering = ['category', 'name']
