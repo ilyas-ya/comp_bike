@@ -1,0 +1,98 @@
+/* Animations pour le diagramme de vélo */
+
+@keyframes ripple {
+  0% {
+    r: 0;
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    r: 30;
+    opacity: 0;
+  }
+}
+
+@keyframes tooltip-appear {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 5px currentColor);
+  }
+  50% {
+    filter: drop-shadow(0 0 15px currentColor);
+  }
+}
+
+@keyframes breathing-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 8px currentColor);
+    opacity: 0.8;
+  }
+  50% {
+    filter: drop-shadow(0 0 20px currentColor);
+    opacity: 1;
+  }
+}
+
+/* Classes pour les zones interactives */
+.hover-glow {
+  animation: pulse-glow 1.5s ease-in-out infinite;
+}
+
+.compatible-glow {
+  animation: breathing-glow 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px #22c55e);
+}
+
+.conditional-glow {
+  animation: breathing-glow 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px #fbbf24);
+}
+
+.selected-glow {
+  animation: pulse-glow 1s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px #ff1744);
+}
+
+.static-glow {
+  filter: drop-shadow(0 0 6px currentColor);
+}
+
+.incompatible-area {
+  filter: drop-shadow(0 0 5px #ef4444);
+}
+
+/* Optimisations de performance */
+.bike-diagram-svg {
+  will-change: transform;
+}
+
+.bike-diagram-svg * {
+  vector-effect: non-scaling-stroke;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .bike-diagram-svg {
+    max-height: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .bike-diagram-svg {
+    max-height: 250px;
+  }
+}
