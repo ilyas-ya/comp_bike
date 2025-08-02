@@ -6,7 +6,7 @@ RUN apk add --no-cache dumb-init
 WORKDIR /app
 
 # Copy package files for better Docker layer caching
-COPY package*.json ./
+COPY package.json package-lock.json ./
 
 # Install dependencies with optimizations
 RUN npm ci --only=production=false --silent
