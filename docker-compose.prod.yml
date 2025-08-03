@@ -60,7 +60,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # Django Backend API - Production ready
+  # Django Backend API - Production ready (Optimized for 1vCPU droplet)
   backend:
     build:
       context: ./backend
@@ -74,6 +74,8 @@ services:
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-generate-a-strong-secret-key-for-production}
       - PYTHONUNBUFFERED=1
       - CELERY_BROKER_URL=redis://redis:6379/1
+      - WEB_CONCURRENCY=1
+      - GUNICORN_CMD_ARGS=--workers=1 --threads=2 --worker-connections=1000 --max-requests=1000 --max-requests-jitter=100 --timeout=30
     volumes:
       - static_files:/app/staticfiles
       - media_files:/app/media
@@ -88,6 +90,14 @@ services:
     networks:
       - compatibility_network
     restart: unless-stopped
+    # Resource limits for 1vCPU droplet
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 300M
+        reservations:
+          memory: 200M
     # Health check
     healthcheck:
       test: ["CMD", "python", "manage.py", "check"]
@@ -211,7 +221,15 @@ services:
     networks:
       - compatibility_network
     restart: unless-stopped
-    command: celery -A compatibility_system worker -l info
+    # Resource limits for 1vCPU droplet
+    deploy:
+      resources:
+        limits:
+          cpus: "0.3"
+          memory: 200M
+        reservations:
+          memory: 100M
+    command: celery -A compatibility_system worker -l info --concurrency=1
 
   # Celery Beat for scheduled tasks
   celery_beat:
@@ -236,6 +254,14 @@ services:
     networks:
       - compatibility_network
     restart: unless-stopped
+    # Resource limits for 1vCPU droplet
+    deploy:
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 100M
+        reservations:
+          memory: 50M
     command: celery -A compatibility_system beat -l info
 
 volumes:
