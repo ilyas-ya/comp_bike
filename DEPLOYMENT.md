@@ -1,13 +1,53 @@
-# 🚀 Production Deployment Guide
+# 🚀 Production Deployment Guide with SSL
 
-This guide helps you deploy the **Bike Components Compatibility System** application in production.
+This guide helps you deploy the **Bike Components Compatibility System** application in production with automatic SSL certificates.
 
 ## 📋 Prerequisites
 
-- Docker and Docker Compose installed
-- Sudo/administrator access on the server
-- At least 4GB of RAM available
-- 10GB of free disk space
+1. **Domain configured**: Your domain must point to your Droplet's IP
+2. **Ports open**: 80 and 443 on your Droplet
+3. **Docker and Docker Compose** installed
+4. **At least 4GB of RAM** available
+5. **10GB of free disk space**
+
+## 🎯 Quick Deployment (Recommended)
+
+### **Step 1: Configure environment**
+
+Copy and edit the environment file:
+
+```bash
+cp .env.prod.example .env.prod
+nano .env.prod
+```
+
+**Required changes in `.env.prod`:**
+
+```bash
+# These are ALREADY configured for comp.bike:
+DOMAIN_NAME=comp.bike
+SSL_EMAIL=admin@comp.bike
+POSTGRES_PASSWORD=CompBike2024!SecurePassword
+DJANGO_SECRET_KEY=comp-bike-super-secret-key-2024-change-this-to-something-very-long-and-random
+```
+
+### **Step 2: Deploy everything**
+
+```bash
+# Make script executable (comp.bike specific)
+chmod +x deploy-comp-bike.sh
+
+# Run deployment
+./deploy-comp-bike.sh
+```
+
+**That's it!** 🎉 The script will:
+
+- ✅ Configure nginx with your domain
+- ✅ Start all services
+- ✅ Run database migrations
+- ✅ Set up SSL certificates
+- ✅ Enable HTTPS redirection
 
 ## 🔧 Initial Configuration
 
