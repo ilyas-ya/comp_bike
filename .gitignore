@@ -72,8 +72,14 @@ node_modules/
 .env.development.local
 .env.test.local
 .env.production.local
-.env.prod
+# .env.prod  # COMMENTED OUT - we want to include this for production deployment
 .env.dev
+
+# Production configuration files (we want these in git)
+# !.env.prod
+# !certbot/
+# !deploy-*.sh
+# !reset-and-deploy.sh
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -360,6 +366,18 @@ docker-volumes/
 *.pem
 *.key
 *.crt
+
+# ===================================
+# PRODUCTION DEPLOYMENT EXCEPTIONS
+# ===================================
+# These files are needed for production deployment
+!.env.prod
+!deploy-*.sh
+!reset-and-deploy.sh
+!certbot/
+!certbot/**
+# SSL certificates in development only (not production Let's Encrypt)
+!ssl/README.md
 
 # Configuration files with sensitive data
 config.json
