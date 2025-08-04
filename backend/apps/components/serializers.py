@@ -1,28 +1,24 @@
 from rest_framework import serializers
-from .models import Component, Adapter
+from .models import Component, CompatibilityLink
 
 class ComponentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Component
         fields = [
-            'id', 'name', 'brand', 'model', 'category', 
-            'specifications', 'price_range', 'image', 
-            'description', 'created_at', 'updated_at'
+            'id', 'brand', 'model', 'type', 'speed', 
+            'specs', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
 
-class ComponentListSerializer(serializers.ModelSerializer):
-    """Lightweight serializer for component lists"""
+class CompatibilityLinkSerializer(serializers.ModelSerializer):
+    source_display = serializers.CharField(source='source.__str__', read_only=True)
+    target_display = serializers.CharField(source='target.__str__', read_only=True)
+    
     class Meta:
-        model = Component
-        fields = ['id', 'name', 'brand', 'category', 'price_range', 'image']
-
-class AdapterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Adapter
+        model = CompatibilityLink
         fields = [
-            'id', 'name', 'brand', 'description', 'price_range', 
-            'image', 'from_specification', 'to_specification',
-            'created_at', 'updated_at'
+            'id', 'source', 'target', 'type', 'status', 
+            'adapter_required', 'notes', 'created_at',
+            'source_display', 'target_display'
         ]
-        read_only_fields = ['created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at']

@@ -1,32 +1,19 @@
 from django.contrib import admin
-from .models import Frame
+from .models import FrameMetadata
 
-@admin.register(Frame)
-class FrameAdmin(admin.ModelAdmin):
-    list_display = ['brand', 'model', 'year', 'frame_type', 'seatpost_diameter', 'is_active']
-    list_filter = ['frame_type', 'brand', 'year', 'is_active', 'created_at']
-    search_fields = ['brand', 'model', 'description']
-    list_editable = ['is_active']
-    readonly_fields = ['created_at', 'updated_at']
+@admin.register(FrameMetadata)
+class FrameMetadataAdmin(admin.ModelAdmin):
+    list_display = ['component', 'frame_type', 'year', 'created_at']
+    list_filter = ['frame_type', 'year', 'created_at']
+    search_fields = ['component__brand', 'component__model', 'description']
+    readonly_fields = ['id', 'created_at', 'updated_at']
+    raw_id_fields = ['component']
     
     fieldsets = (
-        ('Basic Information', {
-            'fields': ('brand', 'model', 'year', 'frame_type', 'description', 'image')
+        ('Frame Information', {
+            'fields': ('component', 'frame_type', 'year', 'description')
         }),
-        ('Standards', {
-            'fields': (
-                'bottom_bracket_standard', 'rear_axle_standard', 'front_axle_standard',
-                'brake_mount_standard', 'headtube_standard'
-            )
-        }),
-        ('Measurements', {
-            'fields': ('seatpost_diameter', 'specifications')
-        }),
-        ('Status', {
-            'fields': ('is_active',)
-        }),
-        ('Timestamps', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
+        ('Metadata', {
+            'fields': ('id', 'created_at', 'updated_at')
         }),
     )

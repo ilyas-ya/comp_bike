@@ -3,63 +3,29 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q
-from .models import Component, Adapter
-from .serializers import ComponentSerializer, ComponentListSerializer, AdapterSerializer
-from .filters import ComponentFilter
+from .models import Component, CompatibilityLink
+from .serializers import ComponentSerializer, CompatibilityLinkSerializer
 
 class ComponentViewSet(viewsets.ModelViewSet):
     """ViewSet for managing bike components"""
-    queryset = Component.objects.filter(is_active=True)
+    queryset = Component.objects.all()
     serializer_class = ComponentSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_class = ComponentFilter
-    search_fields = ['name', 'brand', 'model', 'description']
-    ordering_fields = ['name', 'brand', 'created_at', 'price_range']
-    ordering = ['brand', 'name']
-    
-    def get_serializer_class(self):
-        if self.action == 'list':
-            return ComponentListSerializer
-        return ComponentSerializer
+    search_fields = ['brand', 'model']
+    ordering_fields = ['brand', 'model', 'created_at', 'type']
+    ordering = ['brand', 'model']
     
     @action(detail=False, methods=['get'])
-    def categories(self, request):
-        """Get all component categories"""
-        from .models import COMPONENT_CATEGORIES
-        return Response([{'value': value, 'label': label} for value, label in COMPONENT_CATEGORIES])
-    
-    @action(detail=False, methods=['get'])
-    def search(self, request):
-        """Advanced search endpoint"""
-        query = request.query_params.get('q', '')
-        category = request.query_params.get('category', '')
-        brand = request.query_params.get('brand', '')
-        
-        queryset = self.get_queryset()
-        
-        if query:
-            queryset = queryset.filter(
-                Q(name__icontains=query) |
-                Q(brand__icontains=query) |
-                Q(model__icontains=query) |
-                Q(description__icontains=query)
-            )
-        
-        if category:
-            queryset = queryset.filter(category=category)
-        
-        if brand:
-            queryset = queryset.filter(brand__icontains=brand)
-        
-        # Limit results for performance
-        queryset = queryset[:50]
-        
-        serializer = ComponentListSerializer(queryset, many=True)
-        return Response(serializer.data)
+    def types(self, request):
+        """Get all component types"""
+        from .models import COMPONENT_TYPES
+        return Response([{'value': value, 'label': label} for value, label in COMPONENT_TYPES])
 
-class AdapterViewSet(viewsets.ModelViewSet):
-    """ViewSet for managing adapters"""
-    queryset = Adapter.objects.filter(is_active=True)
-    serializer_class = AdapterSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    search_fields = ['name', 'brand', 'description']
+class CompatibilityLinkViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing compatibility links between components"""
+    queryset = CompatibilityLink.objects.all()
+    serializer_class = CompatibilityLinkSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['source__brand', 'source__model', 'target__brand', 'target__model', 'notes']
+    ordering_fields = ['created_at', 'type', 'status']
+    ordering = ['-created_at']

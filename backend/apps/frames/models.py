@@ -1,6 +1,9 @@
+import uuid
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-from apps.standards.models import Standard
+
+# Note: Frames are now integrated as Components with type='frame'
+# This model is kept for specific frame metadata only
 
 FRAME_TYPES = [
     ('road', 'Road'),
@@ -12,73 +15,31 @@ FRAME_TYPES = [
     ('track', 'Track'),
 ]
 
-class Frame(models.Model):
-    """Bike frame specifications and compatibility"""
-    brand = models.CharField(max_length=100)
-    model = models.CharField(max_length=100)
+class FrameMetadata(models.Model):
+    """Additional frame-specific metadata - Links to Component with type='frame'"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    component = models.OneToOneField(
+        'components.Component', 
+        on_delete=models.CASCADE,
+        limit_choices_to={'type': 'frame'},
+        related_name='frame_metadata'
+    )
+    
+    frame_type = models.CharField(max_length=20, choices=FRAME_TYPES)
     year = models.IntegerField(
         validators=[MinValueValidator(1980), MaxValueValidator(2030)]
     )
-    frame_type = models.CharField(max_length=20, choices=FRAME_TYPES)
     
-    # Standards relationships
-    bottom_bracket_standard = models.ForeignKey(
-        Standard, 
-        on_delete=models.PROTECT, 
-        related_name='frames_bb',
-        limit_choices_to={'category': 'bottom_bracket'}
-    )
-    rear_axle_standard = models.ForeignKey(
-        Standard, 
-        on_delete=models.PROTECT, 
-        related_name='frames_rear_axle',
-        limit_choices_to={'category': 'axle'}
-    )
-    front_axle_standard = models.ForeignKey(
-        Standard, 
-        on_delete=models.PROTECT, 
-        related_name='frames_front_axle',
-        limit_choices_to={'category': 'axle'}
-    )
-    brake_mount_standard = models.ForeignKey(
-        Standard, 
-        on_delete=models.PROTECT, 
-        related_name='frames_brake',
-        limit_choices_to={'category': 'brake_mount'}
-    )
-    headtube_standard = models.ForeignKey(
-        Standard, 
-        on_delete=models.PROTECT, 
-        related_name='frames_headtube',
-        limit_choices_to={'category': 'headtube'}
-    )
-    
-    # Direct measurements
-    seatpost_diameter = models.DecimalField(
-        max_digits=5, 
-        decimal_places=2,
-        help_text="Seatpost diameter in mm"
-    )
-    
-    # Additional specifications
-    specifications = models.JSONField(default=dict)
-    image = models.ImageField(upload_to='frames/', null=True, blank=True)
+    # Frame-specific specifications stored in component.specs
+    # Additional metadata can be stored here if needed
     description = models.TextField(blank=True)
     
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    is_active = models.BooleanField(default=True)
     
     class Meta:
-        ordering = ['brand', 'model', 'year']
-        unique_together = ['brand', 'model', 'year']
-        indexes = [
-            models.Index(fields=['brand']),
-            models.Index(fields=['frame_type']),
-            models.Index(fields=['year']),
-            models.Index(fields=['is_active']),
-        ]
-    
+        ordering = ['component__brand', 'component__model', 'year']
+        
     def __str__(self):
-        return f"{self.brand} {self.model} ({self.year})"
+        return f"{self.component} ({self.year}) - {self.get_frame_type_display()}"
