@@ -23,6 +23,10 @@ class Component(models.Model):
     speed = models.IntegerField(null=True, blank=True, help_text="e.g., 11, 12 for speed count")
     specs = models.JSONField(default=dict, help_text="JSON specifications for compatibility")
     
+    # URLs pour images et fiches produits (nouveaux champs)
+    image_url = models.URLField(blank=True, null=True, help_text="URL de l'image du produit")
+    product_url = models.URLField(blank=True, null=True, help_text="URL de la fiche produit officielle")
+    
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
