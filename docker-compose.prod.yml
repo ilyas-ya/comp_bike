@@ -7,7 +7,6 @@ services:
       POSTGRES_DB: compatibility_system
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-strong_postgres_password_2024}
-      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d:ro
@@ -66,6 +65,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile.prod
     container_name: compatibility_backend_prod
+    env_file:
+      - .env.prod
     environment:
       - DEBUG=0
       - ALLOWED_HOSTS=localhost,127.0.0.1,${DOMAIN_NAME:-your-domain.com}

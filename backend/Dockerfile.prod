@@ -27,6 +27,10 @@ RUN pip install --no-cache-dir --upgrade pip \
 # Copy project
 COPY . .
 
+# Copy and make entrypoint executable
+COPY entrypoint-prod.sh /entrypoint-prod.sh
+RUN chmod +x /entrypoint-prod.sh
+
 # Create necessary directories
 RUN mkdir -p /app/staticfiles /app/media /app/logs \
     && chown -R appuser:appuser /app
@@ -44,5 +48,5 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
 # Expose port
 EXPOSE 8000
 
-# Run gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120", "compatibility_system.wsgi:application"]
+# Run entrypoint script
+CMD ["/entrypoint-prod.sh"]
