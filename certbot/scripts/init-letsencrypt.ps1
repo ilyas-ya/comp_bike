@@ -1,14 +1,11 @@
 # PowerShell script for SSL initialization with Let's Encrypt
-# Usage: .\init-letsencrypt.ps1 -Domain "example.com" -Email "admin@example.com"
+# Usage: .\init-letsencrypt.ps1 -Domain "comp.bike" -Email "votre-email@example.com"
 
 param(
-    [Parameter(Mandatory=$true)]
-    [string]$Domain,
-    
-    [Parameter(Mandatory=$true)]
-    [string]$Email,
-    
-    [string]$DockerComposeFile = "docker-compose.prod.yml"
+    [string]$Domain = "comp.bike",
+    [string]$Email = "adlanehzx@gmail.com",  
+    [string]$DockerComposeFile = "docker-compose.prod.yml",
+    [switch]$Staging = $false
 )
 
 # Check if Docker is installed
